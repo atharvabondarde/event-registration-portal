@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InfotechWay | Event Registration & Management Portal</title>
+  <meta name="description" content="InfotechWay — Enterprise event registration and management platform. Create events, manage participants, track analytics, and streamline your event operations.">
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN for Analytics Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- AUTHENTICATION CARD OVERLAY (Login / Register Screens) -->
+  <div class="auth-wrapper" id="auth-container">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="brand-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <span class="auth-brand-name">InfotechWay Portal</span>
+      </div>
+      
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="login-form" class="auth-form active" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label for="login-email">Corporate Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="e.g. user@infotechway.com" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">
+          Log In
+        </button>
+
+        <div class="demo-credentials-box">
+          <h5>Portal Access</h5>
+          <p>🔑 <strong>Admin:</strong> <code>admin@infotechway.com</code> / <code>admin123</code></p>
+          <p style="font-size:0.75rem; margin-top:6px; opacity:0.7;">New participants can create an account via the registration tab.</p>
+        </div>
+      </form>
+
+      <!-- REGISTER FORM -->
+      <form id="register-form" class="auth-form" onsubmit="handleRegisterSubmit(event)">
+        <div class="form-group">
+          <label for="reg-fullname">Your Full Name</label>
+          <input type="text" id="reg-fullname" class="form-control" placeholder="e.g. John Doe" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-user-email">Email Address</label>
+          <input type="email" id="reg-user-email" class="form-control" placeholder="e.g. john@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-user-password">Create Password</label>
+          <input type="password" id="reg-user-password" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-role-select">Portal Access Level Role</label>
+          <select id="reg-role-select" class="form-control">
+            <option value="participant">Attendee / Participant (Browse & Register)</option>
+            <option value="admin">Event Organizer / Admin (Create & Control)</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 12px;">
+          Register Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- LANDING EXPERIENCE -->
+  <div id="landing-container" class="landing-page" style="display: none;">
+    <nav class="marketing-navbar glass-panel">
+      <div class="marketing-brand glow-text">Infotech Way</div>
+      <div class="marketing-links">
+        <!-- <a href="#features">Platform</a> -->
+        <a href="#events">Upcoming Experiences</a>
+      </div>
+      <div class="marketing-actions">
+        <button class="btn-text" onclick="showAuthScreen('login')">LOGIN</button>
+        <button class="btn-glow" onclick="showAuthScreen('register')">REGISTER</button>
+      </div>
+    </nav>
+
+    <header class="hero-section">
+      <div class="hero-content animate-fade-up">
+        <h1 class="hero-title glow-text">The Future of Event Orchestration</h1>
+        <p class="hero-subtitle">A command-center for high-end digital experiences.</p>
+        <button class="btn-glow large mt-4" onclick="showAuthScreen('register')">Enter The Portal</button>
+      </div>
+      <div class="hero-bg-glow"></div>
+    </header>
+
+    <section id="events" class="carousel-section">
+      <h2 class="section-title text-center animate-fade-up delay-100">Featured Sequences</h2>
+      <div id="landing-events-container" class="carousel-track animate-fade-up delay-200">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <section class="stats-section glass-panel">
+      <div class="stat-box">
+        <h3 id="stat-total-events" class="glow-text">0</h3>
+        <p>Active Sequences</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="stat-total-users" class="glow-text">0</h3>
+        <p>Verified Entities</p>
+      </div>
+      <div class="stat-box">
+        <h3 id="stat-total-registrations" class="glow-text">0</h3>
+        <p>Telemetry Connections</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- MAIN SYSTEM APP SHELL -->
+  <div class="app-container" id="app-shell" style="display: none;">
+    <!-- Top Horizontal Navigation -->
+    <nav class="top-navbar">
+      <div class="top-navbar-brand">
+        <span class="brand-name">InfotechWay</span>
+      </div>
+      
+      <ul class="top-navbar-menu">
+        <li class="top-nav-item role-restricted role-admin" data-view="dashboard"><a onclick="switchView('dashboard')">Dashboard</a></li>
+        <li class="top-nav-item role-restricted role-participant" data-view="participant-dashboard"><a onclick="switchView('participant-dashboard')">Dashboard</a></li>
+        <li class="top-nav-item role-restricted role-admin" data-view="create-event"><a onclick="switchView('create-event')">Event Creation</a></li>
+        <li class="top-nav-item" data-view="events"><a onclick="switchView('events')">Registration Form</a></li>
+        <li class="top-nav-item role-restricted role-admin" data-view="participants"><a onclick="switchView('participants')">Participant Database</a></li>
+        <li class="top-nav-item" data-view="schedule"><a onclick="switchView('schedule')">Event Schedule</a></li>
+        <li class="top-nav-item role-restricted role-admin" data-view="notifications"><a onclick="switchView('notifications')">Notifications</a></li>
+        <!-- <li class="top-nav-item role-restricted role-admin" data-view="dashboard"><a onclick="switchView('dashboard')">Dashboard</a></li> -->
+        <!-- <li class="top-nav-item role-restricted role-participant" data-view="participant-dashboard"><a onclick="switchView('participant-dashboard')">Dashboard</a></li> -->
+      </ul>
+
+      <div class="top-navbar-actions">
+        <span class="user-role-badge" id="header-user-role" style="color: white; margin-right: 12px; font-size: 0.75rem; text-transform: uppercase;">Participant</span>
+        <button class="btn-logout" onclick="handleLogout()">Log Out</button>
+      </div>
+    </nav>
+    
+
+
+
+
+
+
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <div style="padding: 24px 32px 0 32px; max-width: 1400px; margin: 0 auto; width: 100%;">
+        <h2 id="view-title">Dashboard</h2>
+      </div>
+
+      <!-- View Area (Dynamic Views) -->
+      <div class="view-area">
+        
+        <!-- ADMIN DASHBOARD VIEW -->
+        <div id="dashboard-view" class="view-container">
+          <!-- Metrics Row -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Total Events</h4>
+                <div class="metric-value" id="stat-total-events">0</div>
+                <div class="metric-change positive">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+                  <span>Active & Live</span>
+                </div>
+              </div>
+              <div class="metric-icon purple">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Registrations</h4>
+                <div class="metric-value" id="stat-total-registrations">0</div>
+                <div class="metric-change positive">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+                  <span id="stat-reg-delta">Real-time</span>
+                </div>
+              </div>
+              <div class="metric-icon emerald">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Revenue</h4>
+                <div class="metric-value" id="stat-total-revenue">₹0</div>
+                <div class="metric-change positive">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+                  <span>Tickets Sold</span>
+                </div>
+              </div>
+              <div class="metric-icon amber">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Attendance Rate</h4>
+                <div class="metric-value" id="stat-checkin-rate">0%</div>
+                <div class="metric-change positive">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 15l-6-6-6 6"/></svg>
+                  <span>Checked In</span>
+                </div>
+              </div>
+              <div class="metric-icon cyan">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Layout -->
+          <div class="dashboard-layout">
+            <!-- Left Chart Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Registration Analytics
+                </h3>
+                <span class="text-muted" style="font-size: 0.8rem;">Last 30 Days</span>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="registrationChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Right Activity Feed -->
+            <div class="card" style="display: flex; flex-direction: column;">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  Live Activity Feed
+                </h3>
+              </div>
+              <div class="recent-activity-list" id="activity-feed-container" style="flex-grow: 1; overflow-y: auto; max-height: 280px; padding-right: 4px;">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Upcoming Events Summary -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Upcoming Highlight Events</h3>
+              <a onclick="switchView('events')" style="font-size: 0.85rem; font-weight: 600; cursor: pointer;">View All</a>
+            </div>
+            <div class="events-grid" id="dashboard-events-preview">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTICIPANT DASHBOARD VIEW -->
+        <div id="participant-dashboard-view" class="view-container">
+          <!-- Participant Metrics Row -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>My Registered Events</h4>
+                <div class="metric-value" id="stat-user-events">0</div>
+                <div class="metric-change positive">
+                  <span>Reserved Seats</span>
+                </div>
+              </div>
+              <div class="metric-icon purple">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Total Ticket Costs</h4>
+                <div class="metric-value" id="stat-user-spent">₹0</div>
+                <div class="metric-change positive">
+                  <span>Paid Admissions</span>
+                </div>
+              </div>
+              <div class="metric-icon amber">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Checked In Badges</h4>
+                <div class="metric-value" id="stat-user-checkedin">0</div>
+                <div class="metric-change positive">
+                  <span>Verified Attendances</span>
+                </div>
+              </div>
+              <div class="metric-icon emerald">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-info">
+                <h4>Attendance Rate</h4>
+                <div class="metric-value" id="stat-user-rate">0%</div>
+                <div class="metric-change positive">
+                  <span>Overall Presence</span>
+                </div>
+              </div>
+              <div class="metric-icon cyan">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.9 1.39-9 .3-9h1.302c.3.9 1.39 9 .3 9l3.57 3.57c.7.7.3 1.8-.7 1.8h-4.24l-1.3 4c-.3.9-1.39.9-1.69 0l-1.3-4H4.83c-.98 0-1.38-1.1-.7-1.8l3.57-3.57z" /></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Registered Tickets Box -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">My Registered Tickets & Access Badges</h3>
+              <button class="btn btn-secondary" onclick="switchView('events')" style="padding: 6px 12px; font-size:0.75rem;">
+                Browse & Register More
+              </button>
+            </div>
+            
+            <!-- Grid of user tickets -->
+            <div class="events-grid" id="my-tickets-grid-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- EVENTS GRID VIEW (Explore Events) -->
+        <div id="events-view" class="view-container">
+          <div class="section-header">
+            <h3>Explore & Register for Events</h3>
+            <button class="btn btn-primary role-restricted role-admin" onclick="switchView('create-event')">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+              New Event
+            </button>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input type="text" id="event-search-input" class="search-input" placeholder="Search by name, venue, or details..." oninput="filterEventsList()">
+            </div>
+            
+            <select id="event-category-filter" class="select-filter" onchange="filterEventsList()">
+              <option value="All">All Categories</option>
+              <option value="Technology">Technology</option>
+              <option value="Design">Design</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Business">Business</option>
+            </select>
+
+            <select id="event-price-filter" class="select-filter" onchange="filterEventsList()">
+              <option value="All">All Ticket Types</option>
+              <option value="Free">Free Events</option>
+              <option value="Paid">Paid Events</option>
+            </select>
+          </div>
+
+          <div class="events-grid" id="events-grid-container">
+            <!-- Event cards generated by app.js -->
+          </div>
+        </div>
+
+        <!-- EVENT DETAIL & REGISTRATION FORM VIEW -->
+        <div id="event-detail-view" class="view-container">
+          <button class="btn btn-secondary" onclick="handleDetailBackNavigation()" style="margin-bottom: 24px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Back
+          </button>
+          
+          <div id="event-detail-content">
+            <!-- Filled dynamically by JS -->
+          </div>
+        </div>
+
+        <!-- EVENT CREATION WIZARD VIEW -->
+        <div id="create-event-view" class="view-container">
+          <div class="section-header">
+            <h3>Create New Event</h3>
+            <button class="btn btn-secondary" onclick="switchView('events')">Cancel</button>
+          </div>
+
+          <!-- Wizard Indicators -->
+          <div class="wizard-steps">
+            <div class="step-indicator active" id="indicator-step-1">1</div>
+            <div class="step-indicator" id="indicator-step-2">2</div>
+            <div class="step-indicator" id="indicator-step-3">3</div>
+            <div class="step-indicator" id="indicator-step-4">4</div>
+          </div>
+
+          <!-- Form + Live Preview Layout -->
+          <div class="wizard-layout">
+            
+            <!-- Wizard Left Panel: Inputs -->
+            <div class="wizard-form-box">
+              <form id="create-event-form" onsubmit="event.preventDefault();">
+                
+                <!-- STEP 1: Basic Info -->
+                <div class="wizard-step-content active" id="wizard-step-1-content">
+                  <h4 class="wizard-step-title">Step 1: Basic Details</h4>
+                  
+                  <div class="form-group">
+                    <label for="new-event-title">Event Title <span style="color:var(--danger)">*</span></label>
+                    <input type="text" id="new-event-title" class="form-control" placeholder="e.g. NextGen Web Development Summit" required oninput="updateWizardPreview()">
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="new-event-category">Category</label>
+                      <select id="new-event-category" class="form-control" onchange="updateWizardPreview()">
+                        <option value="Technology">Technology</option>
+                        <option value="Design">Design</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Business">Business</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="new-event-banner">Banner Style (Theme Gradient)</label>
+                      <select id="new-event-banner" class="form-control" onchange="updateWizardPreview()">
+                        <option value="linear-gradient(135deg, #0f172a 0%, #334155 100%)">Executive Navy</option>
+                        <option value="linear-gradient(135deg, #1e293b 0%, #475569 100%)">Corporate Slate</option>
+                        <option value="linear-gradient(135deg, #0f5132 0%, #198754 100%)">Enterprise Green</option>
+                        <option value="linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)">Business Blue</option>
+                        <option value="linear-gradient(135deg, #4b5563 0%, #1f2937 100%)">Professional Ash</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="new-event-description">Description <span style="color:var(--danger)">*</span></label>
+                    <textarea id="new-event-description" class="form-control" rows="5" placeholder="Provide a detailed description of the event, what participants will learn, and why they should register..." required oninput="updateWizardPreview()"></textarea>
+                  </div>
+                </div>
+
+                <!-- STEP 2: Time & Location -->
+                <div class="wizard-step-content" id="wizard-step-2-content">
+                  <h4 class="wizard-step-title">Step 2: Date, Time & Location</h4>
+                  
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="new-event-date">Event Date <span style="color:var(--danger)">*</span></label>
+                      <input type="date" id="new-event-date" class="form-control" required oninput="updateWizardPreview()">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="new-event-time">Start Time <span style="color:var(--danger)">*</span></label>
+                      <input type="time" id="new-event-time" class="form-control" required oninput="updateWizardPreview()">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="new-event-duration">Duration (e.g. 3 hours, 2 days)</label>
+                      <input type="text" id="new-event-duration" class="form-control" placeholder="e.g. 5 hours" oninput="updateWizardPreview()">
+                    </div>
+
+                    <div class="form-group">
+                      <label for="new-event-capacity">Total Capacity <span style="color:var(--danger)">*</span></label>
+                      <input type="number" id="new-event-capacity" class="form-control" min="5" value="100" required oninput="updateWizardPreview()">
+                    </div>
+                  </div>
+
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="new-event-loctype">Location Type</label>
+                      <select id="new-event-loctype" class="form-control" onchange="toggleLocationInputs(); updateWizardPreview();">
+                        <option value="venue">Physical Venue</option>
+                        <option value="virtual">Virtual Event (Online link)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label id="location-label-txt" for="new-event-location">Venue Address <span style="color:var(--danger)">*</span></label>
+                      <input type="text" id="new-event-location" class="form-control" placeholder="e.g. Suite 4, Madison Square Gardens, NY" required oninput="updateWizardPreview()">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- STEP 3: Tickets & Registration Custom Fields -->
+                <div class="wizard-step-content" id="wizard-step-3-content">
+                  <h4 class="wizard-step-title">Step 3: Tickets & Custom Registration Fields</h4>
+                  
+                  <div class="form-group-row">
+                    <div class="form-group">
+                      <label for="new-event-tickettype">Ticket Pricing</label>
+                      <select id="new-event-tickettype" class="form-control" onchange="togglePriceInput(); updateWizardPreview();">
+                        <option value="free">Free Ticket</option>
+                        <option value="paid">Paid Ticket</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group" id="price-input-group" style="display: none;">
+                      <label for="new-event-price">Ticket Price (₹ INR) <span style="color:var(--danger)">*</span></label>
+                      <input type="number" id="new-event-price" class="form-control" min="1" value="49" oninput="updateWizardPreview()">
+                    </div>
+                  </div>
+
+                  <!-- Custom Field Builder -->
+                  <div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--border-color);">
+                    <h5 style="margin-bottom: 12px; font-size: 0.95rem;">Additional Registration Fields</h5>
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 16px;">
+                      Gather extra info from participants (e.g. t-shirt size, organization name, portfolio link)
+                    </p>
+
+                    <div class="custom-fields-list" id="wizard-custom-fields-container">
+                      <!-- Rendered as fields are added -->
+                    </div>
+
+                    <!-- Add Field Form -->
+                    <div class="form-group-row" style="background: rgba(0,0,0,0.15); padding: 12px; border-radius: var(--radius-sm); margin-top: 10px;">
+                      <div>
+                        <label for="field-builder-name" style="font-size: 0.75rem;">Field Name</label>
+                        <input type="text" id="field-builder-name" class="form-control" placeholder="e.g. Dietary Preferences" style="padding: 6px 10px;">
+                      </div>
+                      <div>
+                        <label for="field-builder-type" style="font-size: 0.75rem;">Field Type</label>
+                        <div style="display: flex; gap: 8px;">
+                          <select id="field-builder-type" class="form-control" style="padding: 6px 10px;">
+                            <option value="text">Short Text</option>
+                            <option value="select">Dropdown Choice</option>
+                            <option value="url">Website Link</option>
+                          </select>
+                          <button type="button" class="btn btn-primary" onclick="addCustomFieldToWizard()" style="padding: 4px 12px;">Add</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- STEP 4: Agenda / Schedule -->
+                <div class="wizard-step-content" id="wizard-step-4-content">
+                  <h4 class="wizard-step-title">Step 4: Event Schedule & Sessions</h4>
+                  <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 16px;">
+                    Outline the program schedule or workshops that will happen during the event.
+                  </p>
+
+                  <div class="schedule-builder-list" id="wizard-schedule-container">
+                    <!-- Rendered items -->
+                  </div>
+
+                  <!-- Add Agenda Row -->
+                  <div style="background: rgba(0,0,0,0.15); padding: 16px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 12px;">
+                    <div class="form-group-row">
+                      <div>
+                        <label for="agenda-builder-time" style="font-size: 0.75rem;">Time Slot</label>
+                        <input type="text" id="agenda-builder-time" class="form-control" placeholder="e.g. 09:00 - 10:30" style="padding: 6px 10px;">
+                      </div>
+                      <div>
+                        <label for="agenda-builder-title" style="font-size: 0.75rem;">Session Title</label>
+                        <input type="text" id="agenda-builder-title" class="form-control" placeholder="e.g. Opening Keynote" style="padding: 6px 10px;">
+                      </div>
+                    </div>
+                    <div class="form-group-row" style="align-items: flex-end;">
+                      <div>
+                        <label for="agenda-builder-speaker" style="font-size: 0.75rem;">Speaker / Host</label>
+                        <input type="text" id="agenda-builder-speaker" class="form-control" placeholder="e.g. Dr. John Doe" style="padding: 6px 10px;">
+                      </div>
+                      <div>
+                        <label for="agenda-builder-room" style="font-size: 0.75rem;">Location/Room</label>
+                        <div style="display: flex; gap: 8px;">
+                          <input type="text" id="agenda-builder-room" class="form-control" placeholder="e.g. Main Hall" style="padding: 6px 10px;">
+                          <button type="button" class="btn btn-primary" onclick="addAgendaToWizard()" style="padding: 6px 12px;">Add</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Wizard Actions Footer -->
+                <div class="wizard-actions">
+                  <button type="button" class="btn btn-secondary" id="wizard-prev-btn" onclick="wizardPrev()" style="visibility: hidden;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                    Previous
+                  </button>
+                  <button type="button" class="btn btn-primary" id="wizard-next-btn" onclick="wizardNext()">
+                    Next Step
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Wizard Right Panel: Live Card Preview -->
+            <div class="preview-container">
+              <h4 class="preview-title">Live Preview</h4>
+              <div class="event-card" style="width: 100%; pointer-events: none;">
+                <div class="event-banner" id="preview-card-banner" style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%);">
+                  <span class="event-category-badge" id="preview-card-category">Technology</span>
+                </div>
+                <div class="event-body">
+                  <h4 class="event-title" id="preview-card-title" style="margin-bottom: 8px;">Event Title Placeholder</h4>
+                  <p class="event-desc" id="preview-card-desc">Your event description will appear here as you type.</p>
+                  
+                  <div class="event-details-list">
+                    <div class="event-detail-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <span id="preview-card-date">Date not set</span>
+                    </div>
+                    <div class="event-detail-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      <span id="preview-card-location">Location Address</span>
+                    </div>
+                    <div class="event-detail-item">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                      <span id="preview-card-capacity">Capacity: 100 seats</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="event-footer">
+                  <span class="event-price" id="preview-card-price">Free</span>
+                  <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.75rem;">Register Now</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PARTICIPANT DATABASE VIEW -->
+        <div id="participants-view" class="view-container">
+          <div class="section-header">
+            <h3>Registered Participant Database</h3>
+            <button class="btn btn-secondary" onclick="exportParticipantsToCSV()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              Export CSV
+            </button>
+          </div>
+
+          <!-- Search & Filter Controls -->
+          <div class="filters-bar">
+            <div class="search-input-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              <input type="text" id="db-search-input" class="search-input" placeholder="Search participant by name or email..." oninput="filterParticipantDatabase()">
+            </div>
+
+            <select id="db-event-filter" class="select-filter" onchange="filterParticipantDatabase()">
+              <option value="All">All Registered Events</option>
+              <!-- Filled via dynamic JS -->
+            </select>
+
+            <select id="db-checkin-filter" class="select-filter" onchange="filterParticipantDatabase()">
+              <option value="All">All Attendance Status</option>
+              <option value="checked-in">Checked In</option>
+              <option value="absent">Not Checked In</option>
+            </select>
+          </div>
+
+          <!-- Database Table -->
+          <div class="table-responsive">
+            <table class="data-table" id="participants-db-table">
+              <thead>
+                <tr>
+                  <th>Participant Name</th>
+                  <th>Contact Email</th>
+                  <th>Registered Event</th>
+                  <th>Ticket</th>
+                  <th>Registration Date</th>
+                  <th>Check-In Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="participants-tbody-container">
+                <!-- Generated dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- EVENT SCHEDULE CALENDAR VIEW -->
+        <div id="schedule-view" class="view-container">
+          <div class="section-header">
+            <h3>Event Master Calendar Schedule</h3>
+            <span class="text-muted" id="current-calendar-month" style="font-weight: 600;">June & July 2026</span>
+          </div>
+
+          <!-- Schedule Grid (Lists by Date) -->
+          <div class="schedule-grid-container" id="schedule-master-grid">
+            <!-- Dynamic calendar grids or timeline slots -->
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS & COMMUNICATIONS VIEW -->
+        <div id="notifications-view" class="view-container">
+          <div class="composer-layout">
+            
+            <!-- Left panel: Log Audit -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+                  Notification Logs Audit Trail
+                </h3>
+              </div>
+              <div class="recent-activity-list" id="logs-audit-container" style="max-height: 480px; overflow-y: auto; padding-right: 6px;">
+                <!-- Full history of logs rendered here -->
+              </div>
+            </div>
+
+            <!-- Right panel: Announcement Composer -->
+            <div class="card" style="height: fit-content;">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Announcement Broadcast Composer
+                </h3>
+              </div>
+              
+              <form id="announcement-composer-form" onsubmit="sendBroadcastAnnouncement(event)">
+                <div class="form-group">
+                  <label for="broadcast-event-select">Select Target Event Audience <span style="color:var(--danger)">*</span></label>
+                  <select id="broadcast-event-select" class="form-control" required>
+                    <!-- Populated via JS -->
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="broadcast-subject">Announcement Subject / Headline <span style="color:var(--danger)">*</span></label>
+                  <input type="text" id="broadcast-subject" class="form-control" placeholder="e.g. Important Update: Venue room change for keynote" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="broadcast-message">Email Body / Announcement Text <span style="color:var(--danger)">*</span></label>
+                  <textarea id="broadcast-message" class="form-control" rows="5" placeholder="Type your broadcast message to be sent to all registered participants..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="broadcast-medium">Delivery Method</label>
+                  <select id="broadcast-medium" class="form-control">
+                    <option value="email">Email Campaign only</option>
+                    <option value="both">Email & In-App Alerts</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                  Send Announcement Campaign
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- PROFILE SETTINGS VIEW -->
+        <div id="profile-view" class="view-container">
+          <div class="composer-layout">
+            <!-- Left Panel: User Profile Info -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">My Profile Details</h3>
+              </div>
+              <div style="padding:12px; display:flex; flex-direction:column; gap:16px;">
+                <div style="display:flex; align-items:center; gap:16px;">
+                  <div class="user-avatar" id="profile-card-avatar" style="width:64px; height:64px; font-size:1.5rem;">US</div>
+                  <div>
+                    <h3 id="profile-card-name" style="font-family:var(--font-heading); font-size:1.4rem;">User Name</h3>
+                    <span class="status-badge confirmed" id="profile-card-role" style="margin-top:4px;">Participant</span>
+                  </div>
+                </div>
+
+                <hr style="border:none; border-top:1px solid var(--border-color); margin:8px 0;">
+
+                <div class="form-group">
+                  <label>Email Address</label>
+                  <input type="text" id="profile-info-email" class="form-control" readonly style="opacity:0.7; cursor:not-allowed;">
+                </div>
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="profile-info-name" class="form-control">
+                </div>
+                <button class="btn btn-primary" onclick="updateProfileInfo()" style="width:100%;">
+                  Update Profile Details
+                </button>
+              </div>
+            </div>
+
+            <!-- Right Panel: Password Change -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Change Password</h3>
+              </div>
+              <form id="change-password-form" onsubmit="handlePasswordChangeSubmit(event)">
+                <div class="form-group">
+                  <label for="change-pwd-current">Current Password <span style="color:var(--danger)">*</span></label>
+                  <input type="password" id="change-pwd-current" class="form-control" placeholder="••••••••" required>
+                </div>
+                <div class="form-group">
+                  <label for="change-pwd-new">New Password <span style="color:var(--danger)">*</span></label>
+                  <input type="password" id="change-pwd-new" class="form-control" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+                <div class="form-group">
+                  <label for="change-pwd-confirm">Confirm New Password <span style="color:var(--danger)">*</span></label>
+                  <input type="password" id="change-pwd-confirm" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; margin-top: 10px;">
+                  Update Security Password
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- TICKET DETAILS MODAL OVERLAY -->
+  <div class="modal-overlay" id="ticket-modal" onclick="closeTicketModalOnBackdrop(event)">
+    <div class="modal-content">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h3 style="font-family: var(--font-heading);">Official Entry Badge</h3>
+        <button class="btn-icon" onclick="closeTicketModal()" style="border: none; background: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+      </div>
+      
+      <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; margin-bottom: 16px;">
+        This is your verified ticket badge for admission. Please present it at the check-in desk upon arrival.
+      </p>
+
+      <!-- E-Ticket Badge -->
+      <div class="ticket-wrapper">
+        <div class="ticket-header" id="ticket-gradient-banner">
+          <h4 id="ticket-event-title" style="font-family: var(--font-heading); font-size: 1rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Event Title</h4>
+          <span id="ticket-event-category" style="font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em;">Category</span>
+        </div>
+        
+        <div class="ticket-body">
+          <!-- Live QR Code drawn dynamically -->
+          <div class="ticket-qr" id="ticket-qr-container">
+            <!-- Dynamic SVG QR Code will go here -->
+          </div>
+          
+          <div style="margin-top: 4px;">
+            <h3 id="ticket-attendee-name" style="font-family: var(--font-heading); font-size: 1.2rem;">Attendee Name</h3>
+            <span id="ticket-attendee-email" style="font-size: 0.8rem; color: var(--text-secondary);">attendee@email.com</span>
+          </div>
+
+          <div class="ticket-divider">
+            <div class="ticket-notch left"></div>
+            <div class="ticket-notch right"></div>
+          </div>
+
+          <div class="ticket-details">
+            <div>
+              <div class="ticket-info-title">Ticket Reference</div>
+              <div class="ticket-info-val" id="ticket-id">REG-X</div>
+            </div>
+            <div>
+              <div class="ticket-info-title">Access Type</div>
+              <div class="ticket-info-val" id="ticket-type">General Admission</div>
+            </div>
+            <div>
+              <div class="ticket-info-title">Date & Time</div>
+              <div class="ticket-info-val" id="ticket-date-time">July 15, 2026</div>
+            </div>
+            <div>
+              <div class="ticket-info-title">Location/Link</div>
+              <div class="ticket-info-val" id="ticket-location" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">Silicon Valley</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 12px; margin-top: 24px;">
+        <button class="btn btn-secondary" onclick="window.print()" style="flex-grow: 1;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 00-2 2h2m2 4h10a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 00-2 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h8z" /></svg>
+          Print Badge
+        </button>
+        <button class="btn btn-primary" onclick="closeTicketModal()" style="flex-grow: 1;">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST ALERTS DRAWER -->
+  <div class="toast-container" id="toast-container">
+    <!-- Active toasts added via JS -->
+  </div>
+
+  <!-- App Script Dependencies -->
+  <script src="mockData.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
