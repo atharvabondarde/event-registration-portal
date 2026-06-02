@@ -133,6 +133,9 @@ function handleLoginSubmit(event) {
   const password = document.getElementById("login-password").value;
 
   loadStateFromStorage();
+  console.log("Login attempt for:", email);
+  console.log("Available users in system:", users);
+  
   const foundUser = users.find(u => u.email.toLowerCase() === email && u.password === password);
 
   if (foundUser) {
