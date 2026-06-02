@@ -17,8 +17,9 @@ let lastExplorerView = "events";
 // -------------------------------------------------------------
 // APP SETUP & INITIALIZATION
 // -------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   // Sync databases
+  await loadServerState();
   initializeDatabase();
   loadStateFromStorage();
   
