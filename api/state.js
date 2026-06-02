@@ -29,15 +29,22 @@ module.exports = async (req, res) => {
   if (req.method === 'GET') {
     try {
       let users = await prisma.user.findMany();
-      if (!users || users.length === 0) {
+      const adminUser = users.find(u => u.email.toLowerCase() === 'admin@infotechway.com');
+      if (!adminUser) {
         const defaultAdmin = {
           email: "admin@infotechway.com",
-          password: "admin123",
+          password: "admin",
           name: "System Admin",
           role: "admin"
         };
         await prisma.user.create({ data: defaultAdmin });
-        users = [defaultAdmin];
+        users.push(defaultAdmin);
+      } else if (adminUser.password !== 'admin') {
+        await prisma.user.update({
+          where: { email: 'admin@infotechway.com' },
+          data: { password: 'admin' }
+        });
+        adminUser.password = 'admin';
       }
       const events = await prisma.event.findMany();
       const registrations = await prisma.registration.findMany();

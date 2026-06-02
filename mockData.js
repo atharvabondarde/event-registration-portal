@@ -28,7 +28,7 @@ async function loadServerState() {
     if (!data.users || data.users.length === 0) {
       _memUsers = [{
         email: "admin@infotechway.com",
-        password: "admin123",
+        password: "admin",
         name: "System Admin",
         role: "admin"
       }];
@@ -46,7 +46,7 @@ async function loadServerState() {
     _memLogs = [];
     _memUsers = [{
       email: "admin@infotechway.com",
-      password: "admin123",
+      password: "admin",
       name: "System Admin",
       role: "admin"
     }];
