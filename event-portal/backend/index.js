@@ -14,7 +14,17 @@ app.use(express.json({ limit: '50mb' })); // Increase limit just in case
 // GET /api/state: Retrieves all data from MongoDB
 app.get('/api/state', async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    let users = await prisma.user.findMany();
+    if (!users || users.length === 0) {
+      const defaultAdmin = {
+        email: "admin@infotechway.com",
+        password: "admin123",
+        name: "System Admin",
+        role: "admin"
+      };
+      await prisma.user.create({ data: defaultAdmin });
+      users = [defaultAdmin];
+    }
     const events = await prisma.event.findMany();
     const registrations = await prisma.registration.findMany();
     const logs = await prisma.log.findMany();

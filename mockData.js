@@ -40,11 +40,16 @@ async function loadServerState() {
     }
   } catch (error) {
     console.error("Database connection error:", error);
-    // Fallback to empty state if backend is down
+    // Fallback to empty state with default admin if backend is down
     _memEvents = [];
     _memRegistrations = [];
     _memLogs = [];
-    _memUsers = [];
+    _memUsers = [{
+      email: "admin@infotechway.com",
+      password: "admin123",
+      name: "System Admin",
+      role: "admin"
+    }];
     _isInitialized = true;
   }
 }
